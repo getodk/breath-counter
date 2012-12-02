@@ -1,11 +1,13 @@
-
 package change.uw.breathcounter;
+
+import java.text.DecimalFormat;
 
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Color;
 import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.Handler;
@@ -22,235 +24,303 @@ import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import java.text.DecimalFormat;
-
 public class BreathCounterActivity extends Activity {
 
-    private TextView mBreathCountView;
-    private TextView mTimeView;
-    private TextView mBreathsPerMinView;
+	private TextView mBreathCountView;
+	private TextView mTimeView;
+	private TextView mBreathsPerMinView;
+	private TextView mBlankLine;
 
-    private Double mSeconds;
-    private int mBreaths;
+	private Double mSeconds;
+	private int mBreaths;
 
-    private final int mAnswerFontsize = 23;
+	private final int mAnswerFontsize = 23;
 
-    private Integer mAnswer;
+	private Integer mAnswer;
 
-    private Counter mHandler;
+	private Counter mHandler;
 
-    private Button mBreathButton;
+	private Button mBreathButton;
 
-    private LinearLayout mLinearLayout;
+	private Button mResetButton;
+	
+	private Button mRecordAnswerButton;
 
-    private class Counter extends Handler {
-        boolean stop = true;
+	private LinearLayout mLinearLayout;
 
+	private class Counter extends Handler {
+		boolean stop = true;
 
-        @Override
-        public void handleMessage(Message msg) {
-            updateSeconds();
-        }
+		@Override
+		public void handleMessage(Message msg) {
+			updateSeconds();
+		}
 
+		public void count(long delayMillis) {
+			if (!stop) {
+				this.removeMessages(0);
+				sendMessageDelayed(obtainMessage(0), delayMillis);
+			}
+		}
 
-        public void count(long delayMillis) {
-            if (!stop) {
-                this.removeMessages(0);
-                sendMessageDelayed(obtainMessage(0), delayMillis);
-            }
-        }
+		public void stop() {
+			stop = true;
+		}
 
+		public void start() {
+			stop = false;
+			updateSeconds();
+		}
 
-        public void stop() {
-            stop = true;
-        }
+		public boolean running() {
+			return !stop;
+		}
+	};
 
+	/** Called when the activity is first created. */
+	@Override
+	public void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		setContentView(R.layout.main);
 
-        public void start() {
-            stop = false;
-            updateSeconds();
-        }
+		mLinearLayout = (LinearLayout) findViewById(R.id.mainlayout);
 
+		mSeconds = 0.0;
+		mBreaths = 0;
 
-        public boolean running() {
-            return !stop;
-        }
-    };
+		mBreathCountView = new TextView(this);
+		mTimeView = new TextView(this);
+		mBreathsPerMinView = new TextView(this);
+		mBlankLine = new TextView(this);
 
+		mBreathCountView.setTextSize(TypedValue.COMPLEX_UNIT_DIP,
+				mAnswerFontsize);
+		mTimeView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, mAnswerFontsize);
+		mBreathsPerMinView.setTextSize(TypedValue.COMPLEX_UNIT_DIP,
+				mAnswerFontsize);
+		mBreathsPerMinView.setPadding(10, 70, 10, 70);
 
-    /** Called when the activity is first created. */
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.main);
+		mBreathButton = new Button(this);
+		mResetButton = new Button(this);
+		mRecordAnswerButton = new Button(this);
+		
+		mHandler = new Counter();
+		
+		mBreathButton.setText("Press per Breath");
+		if (mAnswer != null) {
+			disableBreathButton();
+		}
+		final Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+		mBreathButton.setOnClickListener(new OnClickListener() {
 
-        mLinearLayout = (LinearLayout) findViewById(R.id.mainlayout);
+			public void onClick(View arg0) {
+				v.vibrate(75);
+				mBreaths++;
+				setBreaths(mBreaths);
+				if (mAnswer == null && !mHandler.running()) {
+					mHandler.start();
+					enableResetButton();
+				}
+			}
 
-        mSeconds = 0.0;
-        mBreaths = 0;
+		});
+		mBreathButton.setPadding(10, 90, 10, 90);
+		mBreathButton.setTextSize(21);
 
-        mBreathCountView = new TextView(this);
-        mTimeView = new TextView(this);
-        mBreathsPerMinView = new TextView(this);
+		
+		mResetButton.setText("Reset Counter");
+		if (!mHandler.running()) {
+			disableResetButton();
+		}
+		mResetButton.setPadding(10, 50, 10, 50);
+		mResetButton.setTextSize(21);
+		mResetButton.setOnClickListener(new OnClickListener() {
 
-        mBreathCountView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, mAnswerFontsize);
-        mTimeView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, mAnswerFontsize);
-        mBreathsPerMinView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, mAnswerFontsize);
+			public void onClick(View arg0) {
+				clearAnswer();
+			}
 
-        mBreathButton = new Button(this);
+		});
+		
+		mRecordAnswerButton.setText("Record Count");
+		if (mAnswer == null || mAnswer == -1) {
+			disableReturnValueButton();
+		}
+		mRecordAnswerButton.setPadding(10, 50, 10, 50);
+		mRecordAnswerButton.setTextSize(21);
+		mRecordAnswerButton.setOnClickListener(new OnClickListener() {
 
-        mBreathButton.setText("Press per Breath");
-        if (mAnswer != null) {
-            mBreathButton.setEnabled(false);
-        }
-        final Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
-        mBreathButton.setOnClickListener(new OnClickListener() {
+			public void onClick(View arg0) {
+				sendAnswerBackToApp();
+			}
 
-            public void onClick(View arg0) {
-                v.vibrate(75);
-                mBreaths++;
-                setBreaths(mBreaths);
-                if (mAnswer == null && !mHandler.running()) {
-                    mHandler.start();
-                }
-            }
+		});
 
-        });
-        mBreathButton.setPadding(10, 70, 10, 70);
-        mBreathButton.setTextSize(21);
+		mLinearLayout.addView(mBreathCountView);
+		mLinearLayout.addView(mTimeView);
+		mLinearLayout.addView(mBreathButton);
+		mLinearLayout.addView(mBreathsPerMinView);
+		mLinearLayout.addView(mResetButton);
+		mLinearLayout.addView(mBlankLine);
+		mLinearLayout.addView(mRecordAnswerButton);
 
-        mLinearLayout.addView(mBreathCountView);
-        mLinearLayout.addView(mTimeView);
-        mLinearLayout.addView(mBreathButton);
-        mLinearLayout.addView(mBreathsPerMinView);
+		registerForContextMenu(mBreathCountView);
+		registerForContextMenu(mTimeView);
+		registerForContextMenu(mBreathButton);
+		registerForContextMenu(mBreathsPerMinView);
+		registerForContextMenu(mResetButton);
+		registerForContextMenu(mBlankLine);
+		registerForContextMenu(mRecordAnswerButton);
 
-        registerForContextMenu(mBreathCountView);
-        registerForContextMenu(mTimeView);
-        registerForContextMenu(mBreathButton);
-        registerForContextMenu(mBreathsPerMinView);
+		clearAnswer();
+	}
 
-        mHandler = new Counter();
+	private void enableBreathButton() {
+		mBreathButton.setBackgroundColor(Color.rgb(0xF7, 0xF2, 0xE0));
+		mBreathButton.setEnabled(true);
+	}
 
-        clearAnswer();
-    }
+	private void disableBreathButton() {
+		mBreathButton.setBackgroundColor(Color.LTGRAY);
+		mBreathButton.setEnabled(false);
+	}
 
+	private void enableResetButton() {
+		mResetButton.setBackgroundColor(Color.rgb(0xE0, 0xE6, 0xF8));
+		mResetButton.setEnabled(true);
+	}
+	
+	private void disableResetButton() {
+		mResetButton.setBackgroundColor(Color.LTGRAY);
+		mResetButton.setEnabled(false);
+	}
+	
+	private void enableReturnValueButton() {
+		mRecordAnswerButton.setBackgroundColor(Color.rgb(0xD8, 0xF6, 0xCE));
+		mRecordAnswerButton.setEnabled(true);
+	}
 
-    private void updateSeconds() {
-        if (mHandler.running()) {
-            if (mSeconds <= 30.0) {
-                mSeconds += .1;
-                setSeconds(mSeconds);
-                mHandler.count(100);
-            }
-            if (mSeconds > 29.9) {
-                mHandler.stop();
-                MediaPlayer mediaPlayer =
-                    MediaPlayer.create(BreathCounterActivity.this, R.raw.beep);
-                mediaPlayer.start();
-                final Vibrator v =
-                    (Vibrator) BreathCounterActivity.this
-                            .getSystemService(Context.VIBRATOR_SERVICE);
-                v.vibrate(500);
+	private void disableReturnValueButton() {
+		mRecordAnswerButton.setBackgroundColor(Color.LTGRAY);
+		mRecordAnswerButton.setEnabled(false);
+	}
+	
+	private void updateSeconds() {
+		if (mHandler.running()) {
+			if (mSeconds <= 60.0) {
+				mSeconds += .1;
+				setSeconds(mSeconds);
+				mHandler.count(100);
+			}
+			if (mSeconds > 59.9) {
+				mHandler.stop();
+				enableReturnValueButton();
+				MediaPlayer mediaPlayer = MediaPlayer.create(
+						BreathCounterActivity.this, R.raw.beep);
+				mediaPlayer.start();
+				final Vibrator v = (Vibrator) BreathCounterActivity.this
+						.getSystemService(Context.VIBRATOR_SERVICE);
+				v.vibrate(500);
 
-                mAnswer = Integer.valueOf(mBreaths * 2);
-                // sometimes stops at 29.9 or 30.1
-                setSeconds(30.0);
-                setAnswer(mAnswer);
-                while (mediaPlayer.isPlaying()) {
-                }
-                mediaPlayer.release();
-                mediaPlayer = null;
-            }
-        }
-    }
+				mAnswer = Integer.valueOf(mBreaths);
+				// sometimes stops at 59.9 or 60.1
+				setSeconds(60.0);
+				setAnswer(mAnswer);
+				while (mediaPlayer.isPlaying()) {
+				}
+				mediaPlayer.release();
+				mediaPlayer = null;
+			}
+		}
+	}
 
+	private void setSeconds(double count) {
+		mSeconds = count;
+		DecimalFormat df = new DecimalFormat("0.0");
+		mTimeView.setText("Seconds: " + df.format(mSeconds));
+	}
 
-    private void setSeconds(double count) {
-        mSeconds = count;
-        DecimalFormat df = new DecimalFormat("0.0");
-        mTimeView.setText("Seconds: " + df.format(mSeconds));
-    }
+	private void setBreaths(int count) {
+		mBreaths = count;
+		mBreathCountView.setText("Breaths: " + mBreaths);
+	}
 
+	private void setAnswer(int count) {
+		if (count == -1) {
+			mBreathsPerMinView.setText("Breaths per Minute: ");
+			mAnswer = null;
+			enableBreathButton();
+		} else {
+			mBreathsPerMinView.setText("Breaths per Minute: " + count);
+			mAnswer = count;
+			disableBreathButton();
+			enableReturnValueButton();
+		}
+	}
 
-    private void setBreaths(int count) {
-        mBreaths = count;
-        mBreathCountView.setText("Breaths: " + mBreaths);
-    }
+	@Override
+	public void onCreateContextMenu(ContextMenu menu, View v,
+			ContextMenuInfo menuInfo) {
+		super.onCreateContextMenu(menu, v, menuInfo);
+		menu.add(0, v.getId(), 0, "Reset Count");
+	}
 
+	@Override
+	public boolean onContextItemSelected(MenuItem item) {
+		createClearDialog();
+		return super.onContextItemSelected(item);
+	}
 
-    private void setAnswer(int count) {
-        if (count == -1) {
-            mBreathsPerMinView.setText("Breaths per Minute: ");
-            mAnswer = null;
-            mBreathButton.setEnabled(true);
-        } else {
-            mBreathsPerMinView.setText("Breaths per Minute: " + count);
-            mAnswer = count;
-            mBreathButton.setEnabled(false);
-        }
-    }
+	private void createClearDialog() {
+		AlertDialog mAlertDialog = new AlertDialog.Builder(this).create();
+		mAlertDialog.setIcon(android.R.drawable.ic_dialog_alert);
 
+		mAlertDialog.setTitle("Reset count?");
+		mAlertDialog.setMessage("Are you sure you want to reset the count?");
 
-    @Override
-    public void onCreateContextMenu(ContextMenu menu, View v, ContextMenuInfo menuInfo) {
-        super.onCreateContextMenu(menu, v, menuInfo);
-        menu.add(0, v.getId(), 0, "Reset Count");
-    }
+		DialogInterface.OnClickListener quitListener = new DialogInterface.OnClickListener() {
 
+			public void onClick(DialogInterface dialog, int i) {
+				switch (i) {
+				case DialogInterface.BUTTON1: // yes
+					clearAnswer();
+					break;
+				case DialogInterface.BUTTON2: // no
+					break;
+				}
+			}
+		};
+		mAlertDialog.setCancelable(false);
+		mAlertDialog.setButton("Reset", quitListener);
+		mAlertDialog.setButton2("Do NOT Reset", quitListener);
+		mAlertDialog.show();
+	}
 
-    @Override
-    public boolean onContextItemSelected(MenuItem item) {
-        createClearDialog();
-        return super.onContextItemSelected(item);
-    }
+	private void clearAnswer() {
+		mHandler.stop();
+		disableResetButton();
+		disableReturnValueButton();
+		setSeconds(0.0);
+		setBreaths(0);
+		setAnswer(-1);
+	}
 
+	@Override
+	public boolean onKeyDown(int keyCode, KeyEvent event) {
+		switch (keyCode) {
+		case KeyEvent.KEYCODE_BACK:
+			sendAnswerBackToApp();
+			return true;
+		}
 
-    private void createClearDialog() {
-        AlertDialog mAlertDialog = new AlertDialog.Builder(this).create();
-        mAlertDialog.setIcon(android.R.drawable.ic_dialog_alert);
+		return super.onKeyDown(keyCode, event);
+	}
 
-        mAlertDialog.setTitle("Reset count?");
-        mAlertDialog.setMessage("Are you sure you want to reset the count?");
-
-        DialogInterface.OnClickListener quitListener = new DialogInterface.OnClickListener() {
-
-            public void onClick(DialogInterface dialog, int i) {
-                switch (i) {
-                    case DialogInterface.BUTTON1: // yes
-                        clearAnswer();
-                        break;
-                    case DialogInterface.BUTTON2: // no
-                        break;
-                }
-            }
-        };
-        mAlertDialog.setCancelable(false);
-        mAlertDialog.setButton("Reset", quitListener);
-        mAlertDialog.setButton2("Do NOT Reset", quitListener);
-        mAlertDialog.show();
-    }
-
-
-    private void clearAnswer() {
-        mHandler.stop();
-        setSeconds(0.0);
-        setBreaths(0);
-        setAnswer(-1);
-    }
-
-
-    @Override
-    public boolean onKeyDown(int keyCode, KeyEvent event) {
-        switch (keyCode) {
-            case KeyEvent.KEYCODE_BACK:
-              Intent intent = new Intent();
-              intent.putExtra("value", mAnswer);
-              setResult(RESULT_OK, intent);
-              finish();
-              return true;
-        }
-        
-        return super.onKeyDown(keyCode, event);
-    }  
+	private void sendAnswerBackToApp() {
+		Intent intent = new Intent();
+		intent.putExtra("value", mAnswer);
+		setResult(RESULT_OK, intent);
+		finish();
+	}
 
 }
