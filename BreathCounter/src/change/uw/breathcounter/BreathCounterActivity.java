@@ -124,15 +124,15 @@ public class BreathCounterActivity extends Activity {
 			}
 
 		});
-		mBreathButton.setPadding(10, 90, 10, 90);
-		mBreathButton.setTextSize(21);
+		mBreathButton.setPadding(10, 100, 10, 100);
+		mBreathButton.setTextSize(28);
 
 		
 		mResetButton.setText("Reset Counter");
 		if (!mHandler.running()) {
 			disableResetButton();
 		}
-		mResetButton.setPadding(10, 50, 10, 50);
+		mResetButton.setPadding(0, 50, 0, 50);
 		mResetButton.setTextSize(21);
 		mResetButton.setOnClickListener(new OnClickListener() {
 
@@ -146,7 +146,7 @@ public class BreathCounterActivity extends Activity {
 		if (mAnswer == null || mAnswer == -1) {
 			disableReturnValueButton();
 		}
-		mRecordAnswerButton.setPadding(10, 50, 10, 50);
+		mRecordAnswerButton.setPadding(0, 50, 0, 50);
 		mRecordAnswerButton.setTextSize(21);
 		mRecordAnswerButton.setOnClickListener(new OnClickListener() {
 
@@ -176,32 +176,32 @@ public class BreathCounterActivity extends Activity {
 	}
 
 	private void enableBreathButton() {
-		mBreathButton.setBackgroundColor(Color.rgb(0xF7, 0xF2, 0xE0));
+		mBreathButton.setTextColor(Color.rgb(0x08,0x8A,0x29));
 		mBreathButton.setEnabled(true);
 	}
 
 	private void disableBreathButton() {
-		mBreathButton.setBackgroundColor(Color.LTGRAY);
+		mBreathButton.setTextColor(Color.DKGRAY);
 		mBreathButton.setEnabled(false);
 	}
 
 	private void enableResetButton() {
-		mResetButton.setBackgroundColor(Color.rgb(0xE0, 0xE6, 0xF8));
+		mResetButton.setBackgroundColor(Color.rgb(0xA9, 0xE2, 0xF3));
 		mResetButton.setEnabled(true);
 	}
 	
 	private void disableResetButton() {
-		mResetButton.setBackgroundColor(Color.LTGRAY);
+		mResetButton.setBackgroundColor(Color.DKGRAY);
 		mResetButton.setEnabled(false);
 	}
-	
+
 	private void enableReturnValueButton() {
-		mRecordAnswerButton.setBackgroundColor(Color.rgb(0xD8, 0xF6, 0xCE));
+		mRecordAnswerButton.setBackgroundColor(Color.rgb(0xF5, 0xF6, 0xCE));
 		mRecordAnswerButton.setEnabled(true);
 	}
 
 	private void disableReturnValueButton() {
-		mRecordAnswerButton.setBackgroundColor(Color.LTGRAY);
+		mRecordAnswerButton.setBackgroundColor(Color.DKGRAY);
 		mRecordAnswerButton.setEnabled(false);
 	}
 	
