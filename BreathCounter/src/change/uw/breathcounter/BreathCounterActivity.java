@@ -114,7 +114,7 @@ public class BreathCounterActivity extends Activity {
 		mBreathButton.setOnClickListener(new OnClickListener() {
 
 			public void onClick(View arg0) {
-				v.vibrate(75);
+				v.vibrate(125);
 				mBreaths++;
 				setBreaths(mBreaths);
 				if (mAnswer == null && !mHandler.running()) {
@@ -220,7 +220,7 @@ public class BreathCounterActivity extends Activity {
 				mediaPlayer.start();
 				final Vibrator v = (Vibrator) BreathCounterActivity.this
 						.getSystemService(Context.VIBRATOR_SERVICE);
-				v.vibrate(500);
+				v.vibrate(1000);
 
 				mAnswer = Integer.valueOf(mBreaths);
 				// sometimes stops at 59.9 or 60.1
@@ -251,8 +251,8 @@ public class BreathCounterActivity extends Activity {
 			mAnswer = null;
 			enableBreathButton();
 		} else {
-			mBreathsPerMinView.setText("Breaths per Minute: " + count);
 			mAnswer = count;
+			mBreathsPerMinView.setText("Breaths per Minute: " + mAnswer);
 			disableBreathButton();
 			enableReturnValueButton();
 		}
