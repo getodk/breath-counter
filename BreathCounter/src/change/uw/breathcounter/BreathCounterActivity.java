@@ -48,12 +48,18 @@ public class BreathCounterActivity extends Activity {
 
 	private LinearLayout mLinearLayout;
 
-	private class Counter extends Handler {
-		boolean stop = true;
-
+	private static class Counter extends Handler {
+		private boolean stop = true;
+		private BreathCounterActivity parent;
+		
+		public Counter(BreathCounterActivity parent) {
+			this.parent = parent;
+		}
+		
+		
 		@Override
 		public void handleMessage(Message msg) {
-			updateSeconds();
+			parent.updateSeconds();
 		}
 
 		public void count(long delayMillis) {
@@ -69,7 +75,7 @@ public class BreathCounterActivity extends Activity {
 
 		public void start() {
 			stop = false;
-			updateSeconds();
+			parent.updateSeconds();
 		}
 
 		public boolean running() {
@@ -104,7 +110,7 @@ public class BreathCounterActivity extends Activity {
 		mResetButton = new Button(this);
 		mRecordAnswerButton = new Button(this);
 		
-		mHandler = new Counter();
+		mHandler = new Counter(this);
 		
 		mBreathButton.setText("Press per Breath");
 		if (mAnswer != null) {
@@ -175,6 +181,11 @@ public class BreathCounterActivity extends Activity {
 		clearAnswer();
 	}
 
+	@Override
+	protected void onPause() {
+		clearAnswer();
+	}
+	
 	private void enableBreathButton() {
 		mBreathButton.setTextColor(Color.rgb(0x08,0x8A,0x29));
 		mBreathButton.setEnabled(true);
