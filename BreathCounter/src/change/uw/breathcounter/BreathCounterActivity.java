@@ -26,6 +26,14 @@ import android.widget.TextView;
 
 public class BreathCounterActivity extends Activity {
 
+	private static final double TIMER_MAX = 60.0;
+	
+	// MUST BE LESS THAN TIMER_MAX
+	private static final double DESIRED_TIMER_END = 60.0;
+	
+	private static final double ANSWER_MULTIPLY = TIMER_MAX/DESIRED_TIMER_END;
+	
+	
 	private TextView mBreathCountView;
 	private TextView mTimeView;
 	private TextView mBreathsPerMinView;
@@ -218,12 +226,12 @@ public class BreathCounterActivity extends Activity {
 	
 	private void updateSeconds() {
 		if (mHandler.running()) {
-			if (mSeconds <= 60.0) {
+			if (mSeconds <= DESIRED_TIMER_END) {
 				mSeconds += .1;
 				setSeconds(mSeconds);
 				mHandler.count(100);
 			}
-			if (mSeconds > 59.9) {
+			if (mSeconds > (DESIRED_TIMER_END - 0.1)) {
 				mHandler.stop();
 				enableReturnValueButton();
 				MediaPlayer mediaPlayer = MediaPlayer.create(
@@ -235,7 +243,7 @@ public class BreathCounterActivity extends Activity {
 
 				mAnswer = Integer.valueOf(mBreaths);
 				// sometimes stops at 59.9 or 60.1
-				setSeconds(60.0);
+				setSeconds(DESIRED_TIMER_END);
 				setAnswer(mAnswer);
 				while (mediaPlayer.isPlaying()) {
 				}
@@ -262,7 +270,7 @@ public class BreathCounterActivity extends Activity {
 			mAnswer = null;
 			enableBreathButton();
 		} else {
-			mAnswer = count;
+			mAnswer = (int) (count * ANSWER_MULTIPLY);
 			mBreathsPerMinView.setText("Breaths per Minute: " + mAnswer);
 			disableBreathButton();
 			enableReturnValueButton();
