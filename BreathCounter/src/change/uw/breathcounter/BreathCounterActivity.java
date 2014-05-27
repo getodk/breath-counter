@@ -20,9 +20,11 @@ import android.view.KeyEvent;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.animation.AlphaAnimation;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.LinearLayout.LayoutParams;
 
 public class BreathCounterActivity extends Activity {
 
@@ -55,6 +57,10 @@ public class BreathCounterActivity extends Activity {
 	private Button mRecordAnswerButton;
 
 	private LinearLayout mLinearLayout;
+	
+	private final int paddingInt = 0;
+	private final int textPaddingInt =0;
+	private final int reportButtonInt = 3;
 
 	private static class Counter extends Handler {
 		private boolean stop = true;
@@ -99,6 +105,11 @@ public class BreathCounterActivity extends Activity {
 
 		mLinearLayout = (LinearLayout) findViewById(R.id.mainlayout);
 
+		LinearLayout.LayoutParams halfParams = new LinearLayout.LayoutParams(
+			    LayoutParams.FILL_PARENT, 0);
+		halfParams.weight = .6f;
+		halfParams.setMargins(paddingInt, paddingInt, paddingInt, paddingInt);
+		
 		mSeconds = 0.0;
 		mBreaths = 0;
 
@@ -120,7 +131,12 @@ public class BreathCounterActivity extends Activity {
 		
 		mHandler = new Counter(this);
 		
-		mBreathButton.setText("Press per Breath");
+		mBreathButton.setLayoutParams(halfParams);
+		
+		mBreathButton.setPadding(paddingInt, paddingInt, paddingInt, textPaddingInt);
+		
+		
+		mBreathButton.setText("Press Here For Every Breath");
 		if (mAnswer != null) {
 			disableBreathButton();
 		}
@@ -128,6 +144,14 @@ public class BreathCounterActivity extends Activity {
 		mBreathButton.setOnClickListener(new OnClickListener() {
 
 			public void onClick(View arg0) {
+				// Gray out animation
+				AlphaAnimation alphaDown = new AlphaAnimation(1.0f, 0.3f);
+				AlphaAnimation alphaUp = new AlphaAnimation(0.3f, 1.0f);
+			    alphaDown.setDuration(1000);
+			    alphaUp.setDuration(500);
+			    alphaDown.setFillAfter(true);
+			    alphaUp.setFillAfter(true);
+			    mBreathButton.startAnimation(alphaUp);
 				v.vibrate(125);
 				mBreaths++;
 				setBreaths(mBreaths);
@@ -142,7 +166,7 @@ public class BreathCounterActivity extends Activity {
 		mBreathButton.setTextSize(28);
 
 		
-		mResetButton.setText("Reset Counter");
+		mResetButton.setText("Press Here to Start Over");
 		if (!mHandler.running()) {
 			disableResetButton();
 		}
@@ -156,7 +180,7 @@ public class BreathCounterActivity extends Activity {
 
 		});
 		
-		mRecordAnswerButton.setText("Record Count");
+		mRecordAnswerButton.setText("Press Here to Record Results");
 		if (mAnswer == null || mAnswer == -1) {
 			disableReturnValueButton();
 		}
@@ -174,17 +198,19 @@ public class BreathCounterActivity extends Activity {
 		mLinearLayout.addView(mTimeView);
 		mLinearLayout.addView(mBreathButton);
 		mLinearLayout.addView(mBreathsPerMinView);
-		mLinearLayout.addView(mResetButton);
-		mLinearLayout.addView(mBlankLine);
 		mLinearLayout.addView(mRecordAnswerButton);
+		mLinearLayout.addView(mBlankLine);
+		mLinearLayout.addView(mResetButton);
+
 
 		registerForContextMenu(mBreathCountView);
 		registerForContextMenu(mTimeView);
 		registerForContextMenu(mBreathButton);
 		registerForContextMenu(mBreathsPerMinView);
-		registerForContextMenu(mResetButton);
-		registerForContextMenu(mBlankLine);
 		registerForContextMenu(mRecordAnswerButton);
+		registerForContextMenu(mBlankLine);
+		registerForContextMenu(mResetButton);
+
 
 		clearAnswer();
 	}
@@ -196,7 +222,8 @@ public class BreathCounterActivity extends Activity {
 	}
 	
 	private void enableBreathButton() {
-		mBreathButton.setTextColor(Color.rgb(0x08,0x8A,0x29));
+		mBreathButton.setBackgroundColor(Color.rgb(153,255,153));
+		mBreathButton.setTextColor(Color.BLACK);
 		mBreathButton.setEnabled(true);
 	}
 
