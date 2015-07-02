@@ -6,4 +6,4 @@ This project is only sporadically maintained. If you discover that it no longer 
 
 It is preserved here for reference purposes.
 
-The Google group for ODK development questions is: [opendatakit-developers@](https://groups.google.com/forum/#!forum/opendatakit-developers)
+The Google group for software engineering questions is: [opendatakit-developers@](https://groups.google.com/forum/#!forum/opendatakit-developers)
