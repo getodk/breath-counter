@@ -1,9 +1,5 @@
-# breathcounter
+# breath-counter
 
-An example APK and an ODK Collect form that launches this APK to count breaths.
+This project is not actively maintained. It is archived here for reference purposes.
 
-This project is only sporadically maintained. If you discover that it no longer functions, please contact the ODK team.
-
-It is preserved here for reference purposes.
-
-The Google group for software engineering questions is: [opendatakit-developers@](https://groups.google.com/forum/#!forum/opendatakit-developers)
+If you wish to maintain it, please contact the ODK team at https://getodk.org.
